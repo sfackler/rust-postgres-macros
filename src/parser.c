@@ -1,13 +1,17 @@
-#include <stdio.h>
 #include "postgres.h"
 #include "utils/memutils.h"
 #include "parser/parser.h"
 
+#include "parser.h"
+
+// Postgres internals require this symbol
 const char *progname = "rust-postgres-macros";
 
-int main() {
+void init_parser(void) {
     MemoryContextInit();
+}
 
+void parse_query(char *query, struct ParseResult *result) {
     MemoryContext ctx = AllocSetContextCreate(TopMemoryContext,
                                               "rust-postgres-macros",
                                               ALLOCSET_DEFAULT_MINSIZE,
@@ -17,14 +21,12 @@ int main() {
 
     PG_TRY();
     {
-        List *parsetree = raw_parser("SELECT * FROMasdf foo WHERasdf");
-        char *str = nodeToString(parsetree);
-        printf("%s\n", str);
+        List *parsetree = raw_parser(query);
+        result->success = 1;
     }
     PG_CATCH();
     {
-        ErrorData *error = CopyErrorData();
-        printf("ERROR: %s\n", error->message);
+        result->success = 0;
     }
     PG_END_TRY();
 

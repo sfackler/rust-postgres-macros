@@ -26,6 +26,9 @@ void parse_query(char *query, struct ParseResult *result) {
     }
     PG_CATCH();
     {
+        ErrorData *error_data = CopyErrorData();
+        result->error_message = malloc(strlen(error_data->message) + 1);
+        strcpy(result->error_message, error_data->message);
         result->success = 0;
     }
     PG_END_TRY();

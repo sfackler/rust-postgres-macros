@@ -7,6 +7,7 @@ extern crate rustc;
 extern crate syntax;
 
 use rustc::plugin::Registry;
+use std::c_str::CString;
 use std::mem;
 use syntax::ast::{TokenTree, ExprLit, LitStr};
 use syntax::codemap::Span;
@@ -18,6 +19,7 @@ mod ffi {
 
     pub struct ParseResult {
         pub success: c_int,
+        pub error_message: *c_char
     }
 
     #[link(name="parser", kind="static")]
@@ -57,20 +59,26 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         }
     };
 
-    if !parse(query.get()) {
-        cx.span_err(e.span, "Invalid SQL");
+    match parse(query.get()) {
+        Ok(()) => {},
+        Err(err) =>
+            cx.span_err(e.span,
+                        format!("Invalid SQL: {}", err.as_str().unwrap()).as_slice())
     }
 
     MacExpr::new(e)
 }
 
-pub fn parse(query: &str) -> bool {
+pub fn parse(query: &str) -> Result<(), CString> {
     unsafe {
         ffi::init_parser();
         let mut result = mem::uninitialized();
         query.with_c_str(|query| {
             ffi::parse_query(query, &mut result);
         });
-        result.success != 0
+        match result.success != 0 {
+            true => Ok(()),
+            false => Err(CString::new(result.error_message, true)),
+        }
     }
 }

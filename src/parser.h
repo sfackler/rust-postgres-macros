@@ -1,6 +1,7 @@
 
 struct ParseResult {
     int success;
+    char *error_message;
 };
 
 void init_parser(void);

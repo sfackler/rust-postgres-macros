@@ -27,7 +27,6 @@ $(LIB_NAME): $(LIB_FILE) $(ARCHIVE) | $(BUILDDIR)
 
 $(ARCHIVE): $(POSTGRES_STAMP) $(BUILDDIR)/parser.o | $(BUILDDIR)
 	ar -rcs $@ $(BUILDDIR)/parser.o $(POSTGRES_OBJS)
-	#strip -K parse_query -K init_parser $@
 
 $(BUILDDIR)/parser.o: src/parser.c src/parser.h | $(BUILDDIR)
 	gcc $(CFLAGS) -I postgres/src/include -c -o $@ $<

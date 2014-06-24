@@ -1,5 +1,6 @@
-BUILDDIR := build
+BUILDDIR ?= build
 CFLAGS ?= -O2 -fPIC
+RUSTC ?= rustc
 
 POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \
 	    egrep -v '(main/main\.o|snowball|libpqwalreceiver|conversion_procs)' | \
@@ -23,17 +24,17 @@ ARCHIVE = $(BUILDDIR)/libparser.a
 all: $(LIB_NAME)
 
 $(LIB_NAME): $(LIB_FILE) $(ARCHIVE) | $(BUILDDIR)
-	rustc -L build --out-dir $(BUILDDIR) --dep-info $(LIB_DEPS) $<
+	$(RUSTC) -L build --out-dir $(BUILDDIR) --dep-info $(LIB_DEPS) $<
 
 $(ARCHIVE): $(POSTGRES_STAMP) $(BUILDDIR)/parser.o | $(BUILDDIR)
-	ar -rcs $@ $(BUILDDIR)/parser.o $(POSTGRES_OBJS)
+	$(AR) -rcs $@ $(BUILDDIR)/parser.o $(POSTGRES_OBJS)
 
 $(BUILDDIR)/parser.o: src/parser.c src/parser.h | $(BUILDDIR)
-	gcc $(CFLAGS) -I postgres/src/include -c -o $@ $<
+	$(CC) $(CFLAGS) -I postgres/src/include -c -o $@ $<
 
 $(POSTGRES_STAMP): | $(BUILDDIR)
 	cd postgres && ./configure CFLAGS="$(CFLAGS)"
-	make -C postgres
+	$(MAKE) -C postgres
 	touch $(POSTGRES_STAMP)
 
 $(BUILDDIR):

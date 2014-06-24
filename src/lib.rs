@@ -68,9 +68,10 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     match parse(query.get()) {
         Ok(()) => {},
         Err(err) =>
-            cx.span_err(e.span, format!("Invalid SQL at or near position {}: {}",
-                                        err.index,
-                                        err.message.as_str().unwrap()).as_slice())
+            cx.span_err(e.span,
+                        format!("Invalid SQL at or near position {}: {}",
+                                err.index,
+                                err.message.as_str().unwrap()).as_slice())
     }
 
     MacExpr::new(e)

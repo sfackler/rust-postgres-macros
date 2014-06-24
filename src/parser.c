@@ -1,11 +1,16 @@
 #include "postgres.h"
 #include "utils/memutils.h"
+#include "nodes/nodeFuncs.h"
 #include "parser/parser.h"
 
 #include "parser.h"
 
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
 // Postgres internals require this symbol
 const char *progname = "rust-postgres-macros";
+
+static bool count_params(Node *node, struct ParseResult *result);
 
 void init_parser(void) {
     MemoryContextInit();
@@ -22,6 +27,8 @@ void parse_query(char *query, struct ParseResult *result) {
     PG_TRY();
     {
         List *parsetree = raw_parser(query);
+        result->num_params = 0;
+        count_params((Node *) parsetree, result);
         result->success = 1;
     }
     PG_CATCH();
@@ -36,4 +43,17 @@ void parse_query(char *query, struct ParseResult *result) {
 
     MemoryContextSwitchTo(TopMemoryContext);
     MemoryContextDelete(ctx);
+}
+
+static bool count_params(Node *node, struct ParseResult *result) {
+    if (node == NULL) {
+        return false;
+    }
+
+    if (IsA(node, ParamRef)) {
+        ParamRef *param = (ParamRef *) node;
+        result->num_params = MAX(result->num_params, param->number);
+    }
+
+    return raw_expression_tree_walker(node, count_params, (void *) result);
 }

@@ -1,5 +1,5 @@
 BUILDDIR ?= build
-CFLAGS ?= -O2 -fPIC
+CFLAGS ?= -O2 -fPIC -Wall -Wextra
 RUSTC ?= rustc
 
 POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \

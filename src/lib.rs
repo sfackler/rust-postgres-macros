@@ -21,6 +21,7 @@ mod ffi {
         pub success: c_int,
         pub error_message: *c_char,
         pub index: c_int,
+        pub num_params: c_int,
     }
 
     #[link(name="parser", kind="static")]
@@ -28,6 +29,10 @@ mod ffi {
         pub fn init_parser();
         pub fn parse_query(query: *c_char, result: *mut ParseResult);
     }
+}
+
+struct ParseInfo {
+    num_params: uint,
 }
 
 struct ParseError {
@@ -66,7 +71,8 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     };
 
     match parse(query.get()) {
-        Ok(()) => {},
+        Ok(info) =>
+            cx.span_note(e.span, format!("{} params", info.num_params).as_slice()),
         Err(err) =>
             cx.span_err(e.span,
                         format!("Invalid SQL at or near position {}: {}",
@@ -77,7 +83,7 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     MacExpr::new(e)
 }
 
-fn parse(query: &str) -> Result<(), ParseError> {
+fn parse(query: &str) -> Result<ParseInfo, ParseError> {
     unsafe {
         ffi::init_parser();
         let mut result = mem::uninitialized();
@@ -85,7 +91,9 @@ fn parse(query: &str) -> Result<(), ParseError> {
             ffi::parse_query(query, &mut result);
         });
         match result.success != 0 {
-            true => Ok(()),
+            true => Ok(ParseInfo {
+                num_params: result.num_params as uint,
+            }),
             false => Err(ParseError {
                 message: CString::new(result.error_message, true),
                 index: result.index as uint,

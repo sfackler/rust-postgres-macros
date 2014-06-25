@@ -1,6 +1,6 @@
 #![crate_id="postgres_macros"]
 #![crate_type="dylib"]
-#![feature(plugin_registrar, quote)]
+#![feature(plugin_registrar)]
 
 extern crate libc;
 extern crate rustc;

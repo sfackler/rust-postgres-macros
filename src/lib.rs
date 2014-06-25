@@ -1,6 +1,6 @@
 #![crate_id="postgres_macros"]
 #![crate_type="dylib"]
-#![feature(plugin_registrar)]
+#![feature(plugin_registrar, quote)]
 
 extern crate libc;
 extern crate rustc;
@@ -9,10 +9,14 @@ extern crate syntax;
 use rustc::plugin::Registry;
 use std::c_str::CString;
 use std::mem;
-use syntax::ast::{TokenTree, ExprLit, LitStr};
+use std::gc::Gc;
+use syntax::ast::{TokenTree, ExprLit, LitStr, Expr};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, DummyResult};
+use syntax::ext::build::AstBuilder;
+use syntax::parse::token::{InternedString, COMMA, EOF};
 use syntax::parse;
+use syntax::parse::parser::Parser;
 
 mod ffi {
     use libc::{c_char, c_int};
@@ -44,6 +48,7 @@ struct ParseError {
 #[doc(hidden)]
 pub fn registrar(reg: &mut Registry) {
     reg.register_macro("sql", expand_sql);
+    reg.register_macro("execute", expand_execute);
     unsafe { ffi::init_parser() }
 }
 
@@ -52,35 +57,97 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
                                                 Vec::from_slice(tts));
 
-    let e = parser.parse_expr();
+    let query_expr = cx.expand_expr(parser.parse_expr());
+    let query = match parse_str_lit(cx, query_expr) {
+        Some(query) => query,
+        None => return DummyResult::expr(sp)
+    };
 
-    let query = match e.node {
+    match parse(query.get()) {
+        Ok(_) => {}
+        Err(err) => parse_error(cx, query_expr.span, err),
+    }
+
+    MacExpr::new(query_expr)
+}
+
+fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
+                  -> Box<MacResult> {
+    let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
+                                                Vec::from_slice(tts));
+
+    let conn = cx.expand_expr(parser.parse_expr());
+
+    if !parser.eat(&COMMA) {
+        cx.span_err(parser.span, "expected `,`");
+        return DummyResult::expr(sp);
+    }
+
+    let query_expr = cx.expand_expr(parser.parse_expr());
+    let query = match parse_str_lit(cx, query_expr) {
+        Some(query) => query,
+        None => return DummyResult::expr(sp),
+    };
+
+    if !parser.eat(&COMMA) {
+        cx.span_err(parser.span, "expected `,`");
+        return DummyResult::expr(sp);
+    }
+
+    let args = match parse_args(cx, &mut parser) {
+        Some(args) => args,
+        None => return DummyResult::expr(sp),
+    };
+
+    match parse(query.get()) {
+        Ok(ref info) if info.num_params != args.len() =>
+            cx.span_err(sp, format!("Expected {} query parameters but got {}",
+                                    info.num_params, args.len()).as_slice()),
+        Ok(_) => {}
+        Err(err) => parse_error(cx, query_expr.span, err),
+    }
+
+    let args = cx.expr_vec(sp, args);
+    MacExpr::new(quote_expr!(cx, $conn.execute($query_expr, $args)))
+}
+
+fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
+    cx.span_err(sp, format!("Invalid syntax at position {}: {}",
+                            err.index,
+                            err.message.as_str().unwrap()).as_slice());
+}
+
+fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
+    match e.node {
         ExprLit(lit) => {
             match lit.node {
-                LitStr(ref s, _) => s.clone(),
+                LitStr(ref s, _) => Some(s.clone()),
                 _ => {
                     cx.span_err(e.span, "expected string literal");
-                    return DummyResult::expr(sp);
+                    None
                 }
             }
         }
         _ => {
             cx.span_err(e.span, "expected string literal");
-            return DummyResult::expr(sp);
+            None
         }
-    };
+    }
+}
 
-    match parse(query.get()) {
-        Ok(info) =>
-            cx.span_note(e.span, format!("{} params", info.num_params).as_slice()),
-        Err(err) =>
-            cx.span_err(e.span,
-                        format!("Invalid SQL at or near position {}: {}",
-                                err.index,
-                                err.message.as_str().unwrap()).as_slice())
+fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<Gc<Expr>>> {
+    let mut args = Vec::new();
+
+    while parser.token != EOF {
+        args.push(cx.expand_expr(parser.parse_expr()));
+
+        if !parser.eat(&COMMA) && parser.token != EOF {
+            cx.span_err(parser.span, "expected `,`");
+            return None;
+        }
     }
 
-    MacExpr::new(e)
+    Some(args)
 }
 
 fn parse(query: &str) -> Result<ParseInfo, ParseError> {

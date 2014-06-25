@@ -6,7 +6,9 @@ extern crate postgres_macros;
 struct Foo;
 
 impl Foo {
-    fn execute(&self, _: &[int]) {}
+    fn execute(&self, query: &str, args: &[int]) {
+        println!("query {} args {}", query, args);
+    }
 }
 
 fn main() {

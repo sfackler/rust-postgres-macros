@@ -10,10 +10,11 @@ use rustc::plugin::Registry;
 use std::c_str::CString;
 use std::mem;
 use std::gc::Gc;
-use syntax::ast::{TokenTree, ExprLit, LitStr, Expr};
+use syntax::ast::{TokenTree, ExprLit, LitStr, Expr, Ident};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, DummyResult};
 use syntax::ext::build::AstBuilder;
+use syntax::parse::token;
 use syntax::parse::token::{InternedString, COMMA, EOF};
 use syntax::parse;
 use syntax::parse::parser::Parser;
@@ -76,7 +77,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
                                                 Vec::from_slice(tts));
 
-    let conn = cx.expand_expr(parser.parse_expr());
+    let conn = parser.parse_expr();
 
     if !parser.eat(&COMMA) {
         cx.span_err(parser.span, "expected `,`");
@@ -107,8 +108,9 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         Err(err) => parse_error(cx, query_expr.span, err),
     }
 
+    let ident = Ident::new(token::intern("execute"));
     let args = cx.expr_vec(sp, args);
-    MacExpr::new(quote_expr!(cx, $conn.execute($query_expr, $args)))
+    MacExpr::new(cx.expr_method_call(sp, conn, ident, vec![query_expr, args]))
 }
 
 fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
@@ -139,7 +141,7 @@ fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<Gc<Expr>>> {
     let mut args = Vec::new();
 
     while parser.token != EOF {
-        args.push(cx.expand_expr(parser.parse_expr()));
+        args.push(parser.parse_expr());
 
         if !parser.eat(&COMMA) && parser.token != EOF {
             cx.span_err(parser.span, "expected `,`");

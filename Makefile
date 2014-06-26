@@ -23,6 +23,8 @@ ARCHIVE = $(BUILDDIR)/libparser.a
 
 all: $(LIB_NAME)
 
+archive: $(ARCHIVE)
+
 $(LIB_NAME): $(LIB_FILE) $(ARCHIVE) | $(BUILDDIR)
 	$(RUSTC) -L build --out-dir $(BUILDDIR) --dep-info $(LIB_DEPS) $<
 
@@ -43,4 +45,4 @@ $(BUILDDIR):
 clean:
 	rm -rf $(BUILDDIR)
 
-.PHONY: all clean
+.PHONY: all archive clean

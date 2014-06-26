@@ -1,0 +1,13 @@
+[package]
+
+name = "postgres_macros"
+authors = ["Steven Fackler <sfackler@gmail.com>"]
+version = "0.0.1"
+
+build = "make archive BUILDDIR=target/deps"
+
+[[lib]]
+
+name = "postgres_macros"
+path = "src/lib.rs"
+crate_type = ["dylib"]

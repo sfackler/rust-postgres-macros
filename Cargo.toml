@@ -4,7 +4,7 @@ name = "postgres_macros"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
 version = "0.0.0"
 
-build = "make archive BUILDDIR=target/deps"
+build = "make archive"
 
 [[lib]]
 

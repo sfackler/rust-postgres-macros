@@ -24,7 +24,7 @@ mod ffi {
 
     pub struct ParseResult {
         pub success: c_int,
-        pub error_message: *c_char,
+        pub error_message: *const c_char,
         pub index: c_int,
         pub num_params: c_int,
     }
@@ -32,7 +32,7 @@ mod ffi {
     #[link(name="parser", kind="static")]
     extern {
         pub fn init_parser();
-        pub fn parse_query(query: *c_char, result: *mut ParseResult);
+        pub fn parse_query(query: *const c_char, result: *mut ParseResult);
     }
 }
 

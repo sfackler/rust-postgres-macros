@@ -1,4 +1,5 @@
 BUILDDIR ?= build
+DEPS_DIR ?= $(BUILDDIR)
 CFLAGS ?= -O2 -fPIC -Wall -Wextra
 RUSTC ?= rustc
 
@@ -17,7 +18,7 @@ LIB_FILE = src/lib.rs
 LIB_NAME = $(BUILDDIR)/$(shell rustc --crate-file-name $(LIB_FILE))
 LIB_DEPS = $(BUILDDIR)/lib.dep
 
-ARCHIVE = $(BUILDDIR)/libparser.a
+ARCHIVE = $(DEPS_DIR)/libparser.a
 
 -include $(LIB_DEPS)
 
@@ -28,10 +29,10 @@ archive: $(ARCHIVE)
 $(LIB_NAME): $(LIB_FILE) $(ARCHIVE) | $(BUILDDIR)
 	$(RUSTC) -L build --out-dir $(BUILDDIR) --dep-info $(LIB_DEPS) $<
 
-$(ARCHIVE): $(POSTGRES_STAMP) $(BUILDDIR)/parser.o | $(BUILDDIR)
-	$(AR) -rcs $@ $(BUILDDIR)/parser.o $(POSTGRES_OBJS)
+$(ARCHIVE): $(POSTGRES_STAMP) $(DEPS_DIR)/parser.o | $(BUILDDIR)
+	$(AR) -rcs $@ $(DEPS_DIR)/parser.o $(POSTGRES_OBJS)
 
-$(BUILDDIR)/parser.o: src/parser.c src/parser.h | $(BUILDDIR)
+$(DEPS_DIR)/parser.o: src/parser.c src/parser.h | $(BUILDDIR)
 	$(CC) $(CFLAGS) -I postgres/src/include -c -o $@ $<
 
 $(POSTGRES_STAMP): | $(BUILDDIR)

@@ -27,3 +27,10 @@ test.rs:8     let bad_query = sql!("SELECT * FORM users WEHRE name = $1");
                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 error: aborting due to previous error
 ```
+
+Credits
+=======
+
+Major thanks to [pganalyze](http://pganalyze.com) for their
+[writeup](https://pganalyze.com/blog/parse-postgresql-queries-in-ruby.html) on
+how to link to the Postgres query parser directly!

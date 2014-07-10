@@ -15,7 +15,7 @@ POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \
 POSTGRES_STAMP := $(BUILDDIR)/postgres.stamp
 
 LIB_FILE = src/lib.rs
-LIB_NAME = $(BUILDDIR)/$(shell rustc --crate-file-name $(LIB_FILE))
+LIB_NAME = $(BUILDDIR)/$(shell rustc --print-file-name $(LIB_FILE))
 LIB_DEPS = $(BUILDDIR)/lib.dep
 
 ARCHIVE = $(DEPS_DIR)/libparser.a

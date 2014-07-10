@@ -1,4 +1,4 @@
-#![crate_id="postgres_macros"]
+#![crate_name="postgres_macros"]
 #![crate_type="dylib"]
 #![feature(plugin_registrar)]
 

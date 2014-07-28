@@ -14,6 +14,7 @@ use syntax::ast::{TokenTree, ExprLit, LitStr, Expr, Ident};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, DummyResult};
 use syntax::ext::build::AstBuilder;
+use syntax::fold::Folder;
 use syntax::parse::token;
 use syntax::parse::token::{InternedString, COMMA, EOF};
 use syntax::parse;
@@ -58,8 +59,8 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
                                                 Vec::from_slice(tts));
 
-    let query_expr = cx.expand_expr(parser.parse_expr());
-    let query = match parse_str_lit(cx, query_expr) {
+    let query_expr = cx.expander().fold_expr(parser.parse_expr());
+    let query = match parse_str_lit(cx, &*query_expr) {
         Some(query) => query,
         None => return DummyResult::expr(sp)
     };
@@ -84,8 +85,8 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         return DummyResult::expr(sp);
     }
 
-    let query_expr = cx.expand_expr(parser.parse_expr());
-    let query = match parse_str_lit(cx, query_expr) {
+    let query_expr = cx.expander().fold_expr(parser.parse_expr());
+    let query = match parse_str_lit(cx, &*query_expr) {
         Some(query) => query,
         None => return DummyResult::expr(sp),
     };

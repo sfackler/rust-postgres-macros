@@ -3,6 +3,8 @@ rust-postgres-macros
 
 A set of support macros for Rust-Postgres.
 
+[![Build Status](https://travis-ci.org/sfackler/rust-postgres-macros.svg?branch=master)](https://travis-ci.org/sfackler/rust-postgres-macros)
+
 sql!
 ====
 

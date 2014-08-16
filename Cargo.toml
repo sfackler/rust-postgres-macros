@@ -6,7 +6,7 @@ version = "0.0.0"
 
 build = "make archive"
 
-[[lib]]
+[lib]
 
 name = "postgres_macros"
 path = "src/lib.rs"

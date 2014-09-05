@@ -23,6 +23,7 @@ use syntax::parse::parser::Parser;
 mod ffi {
     use libc::{c_char, c_int};
 
+    #[repr(C)]
     pub struct ParseResult {
         pub success: c_int,
         pub error_message: *const c_char,
@@ -55,7 +56,7 @@ pub fn registrar(reg: &mut Registry) {
 }
 
 fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
-              -> Box<MacResult> {
+              -> Box<MacResult+'static> {
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
                                                 Vec::from_slice(tts));
 
@@ -74,7 +75,7 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 }
 
 fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
-                  -> Box<MacResult> {
+                  -> Box<MacResult+'static> {
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
                                                 Vec::from_slice(tts));
 

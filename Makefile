@@ -1,5 +1,4 @@
 BUILDDIR ?= build
-DEPS_DIR ?= $(BUILDDIR)
 CFLAGS ?= -O2 -fPIC -Wall -Wextra
 
 POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \
@@ -12,13 +11,14 @@ POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \
 	postgres/src/common/relpath_srv.o
 
 POSTGRES_STAMP := $(BUILDDIR)/postgres.stamp
+PARSER := $(BUILDDIR)/parser.o
 
 ARCHIVE = $(OUT_DIR)/libparser.a
 
-$(ARCHIVE): $(POSTGRES_STAMP) $(DEPS_DIR)/parser.o | $(BUILDDIR)
-	$(AR) -rcs $@ $(DEPS_DIR)/parser.o $(POSTGRES_OBJS)
+$(ARCHIVE): $(POSTGRES_STAMP) $(PARSER) | $(BUILDDIR)
+	$(AR) -rcs $@ $(PARSER) $(POSTGRES_OBJS)
 
-$(DEPS_DIR)/parser.o: src/parser.c src/parser.h | $(BUILDDIR)
+$(PARSER): src/parser.c src/parser.h | $(BUILDDIR)
 	$(CC) $(CFLAGS) -I postgres/src/include -c -o $@ $<
 
 # Postgres's build system tacks this onto CFLAGS

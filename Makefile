@@ -1,7 +1,6 @@
 BUILDDIR ?= build
 DEPS_DIR ?= $(BUILDDIR)
 CFLAGS ?= -O2 -fPIC -Wall -Wextra
-RUSTC ?= rustc
 
 POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \
 	    egrep -v '(main/main\.o|snowball|libpqwalreceiver|conversion_procs)' | \
@@ -14,20 +13,7 @@ POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \
 
 POSTGRES_STAMP := $(BUILDDIR)/postgres.stamp
 
-LIB_FILE = src/lib.rs
-LIB_NAME = $(BUILDDIR)/$(shell rustc --print-file-name $(LIB_FILE))
-LIB_DEPS = $(BUILDDIR)/lib.dep
-
-ARCHIVE = $(DEPS_DIR)/libparser.a
-
--include $(LIB_DEPS)
-
-all: $(LIB_NAME)
-
-archive: $(ARCHIVE)
-
-$(LIB_NAME): $(LIB_FILE) $(ARCHIVE) | $(BUILDDIR)
-	$(RUSTC) -L build --out-dir $(BUILDDIR) --dep-info $(LIB_DEPS) $<
+ARCHIVE = $(OUT_DIR)/libparser.a
 
 $(ARCHIVE): $(POSTGRES_STAMP) $(DEPS_DIR)/parser.o | $(BUILDDIR)
 	$(AR) -rcs $@ $(DEPS_DIR)/parser.o $(POSTGRES_OBJS)
@@ -35,6 +21,8 @@ $(ARCHIVE): $(POSTGRES_STAMP) $(DEPS_DIR)/parser.o | $(BUILDDIR)
 $(DEPS_DIR)/parser.o: src/parser.c src/parser.h | $(BUILDDIR)
 	$(CC) $(CFLAGS) -I postgres/src/include -c -o $@ $<
 
+# Postgres's build system tacks this onto CFLAGS
+unexport PROFILE
 $(POSTGRES_STAMP): | $(BUILDDIR)
 	cd postgres && ./configure CFLAGS="$(CFLAGS)"
 	$(MAKE) -C postgres
@@ -43,7 +31,4 @@ $(POSTGRES_STAMP): | $(BUILDDIR)
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
-clean:
-	rm -rf $(BUILDDIR)
-
-.PHONY: all archive clean
+.PHONY: archive

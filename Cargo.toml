@@ -10,4 +10,4 @@ build = "make"
 
 name = "postgres_macros"
 path = "src/lib.rs"
-crate_type = ["dylib"]
+plugin = true

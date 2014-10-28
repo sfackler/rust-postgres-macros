@@ -9,7 +9,6 @@ extern crate syntax;
 use rustc::plugin::Registry;
 use std::c_str::CString;
 use std::mem;
-use std::gc::Gc;
 use syntax::ast::{TokenTree, ExprLit, LitStr, Expr, Ident};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, DummyResult};
@@ -19,6 +18,7 @@ use syntax::parse::token;
 use syntax::parse::token::{InternedString, COMMA, EOF};
 use syntax::parse;
 use syntax::parse::parser::Parser;
+use syntax::ptr::P;
 
 mod ffi {
     use libc::{c_char, c_int};
@@ -58,7 +58,7 @@ pub fn registrar(reg: &mut Registry) {
 fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
               -> Box<MacResult+'static> {
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
-                                                Vec::from_slice(tts));
+                                                tts.to_vec());
 
     let query_expr = cx.expander().fold_expr(parser.parse_expr());
     let query = match parse_str_lit(cx, &*query_expr) {
@@ -77,7 +77,7 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
                   -> Box<MacResult+'static> {
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
-                                                Vec::from_slice(tts));
+                                                tts.to_vec());
 
     let conn = parser.parse_expr();
 
@@ -123,7 +123,7 @@ fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
 
 fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
     match e.node {
-        ExprLit(lit) => {
+        ExprLit(ref lit) => {
             match lit.node {
                 LitStr(ref s, _) => Some(s.clone()),
                 _ => {
@@ -139,7 +139,7 @@ fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
     }
 }
 
-fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<Gc<Expr>>> {
+fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<P<Expr>>> {
     let mut args = Vec::new();
 
     while parser.token != EOF {

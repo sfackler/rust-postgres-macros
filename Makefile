@@ -13,7 +13,7 @@ POSTGRES_OBJS = $(shell find postgres/src/backend -name '*.o' | \
 POSTGRES_STAMP := $(BUILDDIR)/postgres.stamp
 PARSER := $(BUILDDIR)/parser.o
 
-ARCHIVE = $(OUT_DIR)/libparser.a
+ARCHIVE := $(OUT_DIR)/libparser.a
 
 $(ARCHIVE): $(POSTGRES_STAMP) $(PARSER) | $(BUILDDIR)
 	$(AR) -rcs $@ $(PARSER) $(POSTGRES_OBJS)
@@ -30,5 +30,3 @@ $(POSTGRES_STAMP): | $(BUILDDIR)
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
-
-.PHONY: archive

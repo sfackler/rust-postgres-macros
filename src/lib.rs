@@ -15,7 +15,7 @@ use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, DummyResult};
 use syntax::ext::build::AstBuilder;
 use syntax::fold::Folder;
 use syntax::parse::token;
-use syntax::parse::token::{InternedString, COMMA, EOF};
+use syntax::parse::token::{InternedString, Comma, Eof};
 use syntax::parse;
 use syntax::parse::parser::Parser;
 use syntax::ptr::P;
@@ -81,7 +81,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 
     let conn = parser.parse_expr();
 
-    if !parser.eat(&COMMA) {
+    if !parser.eat(&Comma) {
         cx.span_err(parser.span, "expected `,`");
         return DummyResult::expr(sp);
     }
@@ -92,7 +92,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         None => return DummyResult::expr(sp),
     };
 
-    if !parser.eat(&COMMA) {
+    if !parser.eat(&Comma) {
         cx.span_err(parser.span, "expected `,`");
         return DummyResult::expr(sp);
     }
@@ -142,10 +142,10 @@ fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
 fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<P<Expr>>> {
     let mut args = Vec::new();
 
-    while parser.token != EOF {
+    while parser.token != Eof {
         args.push(parser.parse_expr());
 
-        if !parser.eat(&COMMA) && parser.token != EOF {
+        if !parser.eat(&Comma) && parser.token != Eof {
             cx.span_err(parser.span, "expected `,`");
             return None;
         }

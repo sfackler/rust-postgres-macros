@@ -31,7 +31,6 @@ mod ffi {
         pub num_params: c_int,
     }
 
-    #[link(name="parser", kind="static")]
     extern {
         pub fn init_parser();
         pub fn parse_query(query: *const c_char, result: *mut ParseResult);

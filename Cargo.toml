@@ -4,10 +4,11 @@ name = "postgres_macros"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
 version = "0.0.0"
 
-build = "make"
+build = "build.rs"
 
 [lib]
 
 name = "postgres_macros"
 path = "src/lib.rs"
 plugin = true
+test = false

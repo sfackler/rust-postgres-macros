@@ -2,7 +2,9 @@
 
 name = "postgres_macros"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
-version = "0.0.0"
+version = "0.0.1"
+license = "MIT"
+description = "A set of support macros for rust-postgres"
 
 build = "build.rs"
 

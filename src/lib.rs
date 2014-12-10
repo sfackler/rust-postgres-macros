@@ -155,19 +155,17 @@ fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<P<Expr>>> {
 
 fn parse(query: &str) -> Result<ParseInfo, ParseError> {
     unsafe {
-        ffi::init_parser();
         let mut result = mem::uninitialized();
-        query.with_c_str(|query| {
-            ffi::parse_query(query, &mut result);
-        });
-        match result.success != 0 {
-            true => Ok(ParseInfo {
+        query.with_c_str(|query| ffi::parse_query(query, &mut result));
+        if result.success != 0 {
+            Ok(ParseInfo {
                 num_params: result.num_params as uint,
-            }),
-            false => Err(ParseError {
+            })
+        } else {
+            Err(ParseError {
                 message: CString::new(result.error_message, true),
                 index: result.index as uint,
-            }),
+            })
         }
     }
 }

@@ -2,13 +2,16 @@
 #![crate_type="dylib"]
 #![feature(plugin_registrar)]
 
+#![allow(unstable)]
+
 extern crate libc;
 extern crate rustc;
 extern crate syntax;
 
 use rustc::plugin::Registry;
-use std::c_str::CString;
+use std::ffi::CString;
 use std::mem;
+use std::str;
 use syntax::ast::{TokenTree, ExprLit, LitStr, Expr, Ident};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, DummyResult};
@@ -38,12 +41,12 @@ mod ffi {
 }
 
 struct ParseInfo {
-    num_params: uint,
+    num_params: usize,
 }
 
 struct ParseError {
-    message: CString,
-    index: uint,
+    message: String,
+    index: usize,
 }
 
 #[plugin_registrar]
@@ -117,7 +120,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
     cx.span_err(sp, format!("Invalid syntax at position {}: {}",
                             err.index,
-                            err.message.as_str().unwrap()).as_slice());
+                            err.message).as_slice());
 }
 
 fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
@@ -156,15 +159,17 @@ fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<P<Expr>>> {
 fn parse(query: &str) -> Result<ParseInfo, ParseError> {
     unsafe {
         let mut result = mem::uninitialized();
-        query.with_c_str(|query| ffi::parse_query(query, &mut result));
+        let query = CString::from_slice(query.as_bytes());
+        ffi::parse_query(query.as_ptr(), &mut result);
         if result.success != 0 {
             Ok(ParseInfo {
-                num_params: result.num_params as uint,
+                num_params: result.num_params as usize,
             })
         } else {
+            let bytes = std::ffi::c_str_to_bytes(&result.error_message);
             Err(ParseError {
-                message: CString::new(result.error_message, true),
-                index: result.index as uint,
+                message: str::from_utf8(bytes).unwrap().to_string(),
+                index: result.index as usize,
             })
         }
     }

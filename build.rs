@@ -1,3 +1,5 @@
+#![allow(unstable)]
+
 use std::io::Command;
 use std::io::process::StdioContainer::InheritFd;
 use std::os;

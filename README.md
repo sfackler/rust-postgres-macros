@@ -12,9 +12,10 @@ The `sql!` macro will validate that its string literal argument parses as a
 valid Postgres query.
 
 ```rust
-#![feature(phase)]
+#![feature(plugin)]
 
-#[phase(syntax)]
+#[plugin]
+#[no_link]
 extern crate postgres_macros;
 
 fn main() {

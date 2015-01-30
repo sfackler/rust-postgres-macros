@@ -1,7 +1,7 @@
-#![allow(unstable)]
+#![feature(io, os)]
 
-use std::io::Command;
-use std::io::process::StdioContainer::InheritFd;
+use std::old_io::Command;
+use std::old_io::process::StdioContainer::InheritFd;
 use std::os;
 
 fn main() {

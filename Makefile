@@ -1,4 +1,4 @@
-VERSION = 9.4.0
+VERSION = 9.4.1
 SOURCE_URL = https://ftp.postgresql.org/pub/source/v$(VERSION)/postgresql-$(VERSION).tar.gz
 
 BUILDDIR ?= $(OUT_DIR)/build

@@ -66,7 +66,7 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         None => return DummyResult::expr(sp)
     };
 
-    match parse(query.get()) {
+    match parse(&query) {
         Ok(_) => {}
         Err(err) => parse_error(cx, query_expr.span, err),
     }
@@ -102,7 +102,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         None => return DummyResult::expr(sp),
     };
 
-    match parse(query.get()) {
+    match parse(&query) {
         Ok(ref info) if info.num_params != args.len() =>
             cx.span_err(sp, format!("Expected {} query parameters but got {}",
                                     info.num_params, args.len()).as_slice()),

@@ -11,6 +11,6 @@ fn main() {
         .stderr(InheritFd(2))
         .status()
         .unwrap();
-    let out_dir = env::var_string("OUT_DIR").unwrap();
+    let out_dir = env::var("OUT_DIR").unwrap();
     println!("cargo:rustc-flags=-L {} -l parser:static", out_dir);
 }

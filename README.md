@@ -13,10 +13,7 @@ valid Postgres query.
 
 ```rust
 #![feature(plugin)]
-
-#[plugin]
-#[no_link]
-extern crate postgres_macros;
+#![plugin(postgres_macros)]
 
 fn main() {
     let query = sql!("SELECT * FROM users WHERE name = $1");

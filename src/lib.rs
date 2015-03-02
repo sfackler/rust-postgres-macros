@@ -12,7 +12,7 @@ use std::mem;
 use std::str;
 use syntax::ast::{TokenTree, ExprLit, LitStr, Expr, Ident};
 use syntax::codemap::Span;
-use syntax::ext::base::{ExtCtxt, MacResult, MacExpr, DummyResult};
+use syntax::ext::base::{ExtCtxt, MacResult, MacEager, DummyResult};
 use syntax::ext::build::AstBuilder;
 use syntax::fold::Folder;
 use syntax::parse::token;
@@ -71,7 +71,7 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         Err(err) => parse_error(cx, query_expr.span, err),
     }
 
-    MacExpr::new(query_expr)
+    MacEager::expr(query_expr)
 }
 
 fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
@@ -112,7 +112,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 
     let ident = Ident::new(token::intern("execute"));
     let args = cx.expr_vec(sp, args);
-    MacExpr::new(cx.expr_method_call(sp, conn, ident, vec![query_expr, args]))
+    MacEager::expr(cx.expr_method_call(sp, conn, ident, vec![query_expr, args]))
 }
 
 fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {

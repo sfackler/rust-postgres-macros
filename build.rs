@@ -1,14 +1,13 @@
-#![feature(io, env)]
+#![feature(process)]
 
-use std::old_io::Command;
-use std::old_io::process::StdioContainer::InheritFd;
+use std::process::{Command, Stdio};
 use std::env;
 
 fn main() {
     Command::new("make")
-        .stdin(InheritFd(0))
-        .stdout(InheritFd(1))
-        .stderr(InheritFd(2))
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .status()
         .unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();

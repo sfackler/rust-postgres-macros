@@ -7,7 +7,7 @@ extern crate rustc;
 extern crate syntax;
 
 use rustc::plugin::Registry;
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::mem;
 use std::str;
 use syntax::ast::{TokenTree, ExprLit, LitStr, Expr, Ident};
@@ -157,14 +157,14 @@ fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<P<Expr>>> {
 fn parse(query: &str) -> Result<ParseInfo, ParseError> {
     unsafe {
         let mut result = mem::uninitialized();
-        let query = CString::from_slice(query.as_bytes());
+        let query = CString::new(query.as_bytes()).unwrap();
         ffi::parse_query(query.as_ptr(), &mut result);
         if result.success != 0 {
             Ok(ParseInfo {
                 num_params: result.num_params as usize,
             })
         } else {
-            let bytes = std::ffi::c_str_to_bytes(&result.error_message);
+            let bytes = CStr::from_ptr(result.error_message).to_bytes();
             Err(ParseError {
                 message: str::from_utf8(bytes).unwrap().to_string(),
                 index: result.index as usize,

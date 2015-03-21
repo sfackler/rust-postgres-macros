@@ -9,10 +9,10 @@ POSTGRES_OBJS = $(shell find $(POSTGRES_DIR)/src/backend -name '*.o' | \
 	    egrep -v '(main/main\.o|snowball|libpqwalreceiver|conversion_procs)' | \
 	    xargs echo) \
 	$(shell find $(POSTGRES_DIR)/src/port -name '*_srv.o') \
+	$(shell find $(POSTGRES_DIR)/src/common -name '*_srv.o') \
 	$(POSTGRES_DIR)/src/timezone/localtime.o \
 	$(POSTGRES_DIR)/src/timezone/strftime.o \
-	$(POSTGRES_DIR)/src/timezone/pgtz.o \
-	$(POSTGRES_DIR)/src/common/relpath_srv.o
+	$(POSTGRES_DIR)/src/timezone/pgtz.o
 
 POSTGRES_STAMP := $(BUILDDIR)/postgres.stamp
 PARSER := $(BUILDDIR)/parser.o

@@ -1,6 +1,6 @@
 #![crate_name="postgres_macros"]
 #![crate_type="dylib"]
-#![feature(plugin_registrar, core, rustc_private, libc)]
+#![feature(plugin_registrar, rustc_private, libc)]
 
 extern crate libc;
 extern crate rustc;
@@ -104,8 +104,8 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 
     match parse(&query) {
         Ok(ref info) if info.num_params != args.len() =>
-            cx.span_err(sp, format!("Expected {} query parameters but got {}",
-                                    info.num_params, args.len()).as_slice()),
+            cx.span_err(sp, &format!("Expected {} query parameters but got {}",
+                                     info.num_params, args.len())),
         Ok(_) => {}
         Err(err) => parse_error(cx, query_expr.span, err),
     }
@@ -116,9 +116,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 }
 
 fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
-    cx.span_err(sp, format!("Invalid syntax at position {}: {}",
-                            err.index,
-                            err.message).as_slice());
+    cx.span_err(sp, &format!("Invalid syntax at position {}: {}", err.index, err.message));
 }
 
 fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {

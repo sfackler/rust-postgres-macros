@@ -9,5 +9,5 @@ fn main() {
         .status()
         .unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();
-    println!("cargo:rustc-flags=-L {} -l parser:static", out_dir);
+    println!("cargo:rustc-flags=-L {} -l static=parser", out_dir);
 }

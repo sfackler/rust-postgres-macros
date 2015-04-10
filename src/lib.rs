@@ -81,7 +81,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 
     let conn = parser.parse_expr();
 
-    if !parser.eat(&Comma) {
+    if !parser.eat(&Comma).ok().unwrap() {
         cx.span_err(parser.span, "expected `,`");
         return DummyResult::expr(sp);
     }
@@ -92,7 +92,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         None => return DummyResult::expr(sp),
     };
 
-    if !parser.eat(&Comma) {
+    if !parser.eat(&Comma).ok().unwrap() {
         cx.span_err(parser.span, "expected `,`");
         return DummyResult::expr(sp);
     }
@@ -143,7 +143,7 @@ fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<P<Expr>>> {
     while parser.token != Eof {
         args.push(parser.parse_expr());
 
-        if !parser.eat(&Comma) && parser.token != Eof {
+        if !parser.eat(&Comma).ok().unwrap() && parser.token != Eof {
             cx.span_err(parser.span, "expected `,`");
             return None;
         }

@@ -110,7 +110,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         Err(err) => parse_error(cx, query_expr.span, err),
     }
 
-    let ident = Ident::new(token::intern("execute"));
+    let ident = Ident::with_empty_ctxt(token::intern("execute"));
     let args = cx.expr_vec(sp, args);
     MacEager::expr(cx.expr_method_call(sp, conn, ident, vec![query_expr, args]))
 }

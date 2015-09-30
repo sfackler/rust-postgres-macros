@@ -1,5 +1,3 @@
-#![crate_name="postgres_macros"]
-#![crate_type="dylib"]
 #![feature(plugin_registrar, rustc_private, libc)]
 
 extern crate libc;

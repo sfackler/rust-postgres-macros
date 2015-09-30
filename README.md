@@ -5,6 +5,13 @@ A set of support macros for Rust-Postgres.
 
 [![Build Status](https://travis-ci.org/sfackler/rust-postgres-macros.svg?branch=master)](https://travis-ci.org/sfackler/rust-postgres-macros)
 
+You can integrate rust-postgres-macros into your project through the [releases on crates.io](https://crates.io/crates/postgres_macros):
+```toml
+# Cargo.toml
+[dependencies]
+postgres_macros = "0.1.3"
+```
+
 sql!
 ====
 

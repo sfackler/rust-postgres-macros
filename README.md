@@ -9,7 +9,7 @@ You can integrate rust-postgres-macros into your project through the [releases o
 ```toml
 # Cargo.toml
 [dependencies]
-postgres_macros = "0.1.3"
+postgres_macros = "0.1"
 ```
 
 sql!

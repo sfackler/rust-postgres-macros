@@ -23,12 +23,12 @@ void parse_query(char *query, struct ParseResult *result) {
                                               ALLOCSET_DEFAULT_INITSIZE,
                                               ALLOCSET_DEFAULT_MAXSIZE);
     MemoryContextSwitchTo(ctx);
+    List *parsetree;
 
     PG_TRY();
     {
-        List *parsetree = raw_parser(query);
+        parsetree = raw_parser(query);
         result->num_params = 0;
-        count_params((Node *) parsetree, result);
         result->success = 1;
     }
     PG_CATCH();
@@ -38,6 +38,18 @@ void parse_query(char *query, struct ParseResult *result) {
         strcpy(result->error_message, error_data->message);
         result->index = error_data->cursorpos;
         result->success = 0;
+    }
+    PG_END_TRY();
+
+    // raw_expression_tree_walker doesn't support all query types, so mark
+    // that we couldn't get the counts.
+    PG_TRY();
+    {
+        count_params((Node *) parsetree, result);
+    }
+    PG_CATCH();
+    {
+        result->num_params = -1;
     }
     PG_END_TRY();
 

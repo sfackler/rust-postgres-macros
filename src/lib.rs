@@ -37,7 +37,7 @@ mod ffi {
 }
 
 struct ParseInfo {
-    num_params: usize,
+    num_params: Option<usize>,
 }
 
 struct ParseError {
@@ -90,7 +90,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         None => return DummyResult::expr(sp),
     };
 
-    if !parser.eat(&Comma).ok().unwrap() {
+    if parser.token != Eof && !parser.eat(&Comma).ok().unwrap() {
         cx.span_err(parser.span, "expected `,`");
         return DummyResult::expr(sp);
     }
@@ -101,15 +101,20 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     };
 
     match parse(&query) {
-        Ok(ref info) if info.num_params != args.len() =>
+        Ok(ParseInfo { num_params: None }) => {
+            cx.span_warn(sp, "unable to verify the number of query parameters");
+        }
+        Ok(ParseInfo { num_params: Some(num_params) }) if num_params != args.len() => {
             cx.span_err(sp, &format!("Expected {} query parameters but got {}",
-                                     info.num_params, args.len())),
+                                     num_params, args.len()));
+        }
         Ok(_) => {}
         Err(err) => parse_error(cx, query_expr.span, err),
     }
 
     let ident = Ident::with_empty_ctxt(token::intern("execute"));
     let args = cx.expr_vec(sp, args);
+    let args = cx.expr_addr_of(sp, args);
     MacEager::expr(cx.expr_method_call(sp, conn, ident, vec![query_expr, args]))
 }
 
@@ -156,8 +161,13 @@ fn parse(query: &str) -> Result<ParseInfo, ParseError> {
         let query = CString::new(query.as_bytes()).unwrap();
         ffi::parse_query(query.as_ptr(), &mut result);
         if result.success != 0 {
+            let num_params = if result.num_params < 0 {
+                None
+            } else {
+                Some(result.num_params as usize)
+            };
             Ok(ParseInfo {
-                num_params: result.num_params as usize,
+                num_params: num_params,
             })
         } else {
             let bytes = CStr::from_ptr(result.error_message).to_bytes();

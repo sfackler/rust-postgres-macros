@@ -41,6 +41,10 @@ void parse_query(char *query, struct ParseResult *result) {
     }
     PG_END_TRY();
 
+    if (result->success != 1) {
+        return;
+    }
+
     // raw_expression_tree_walker doesn't support all query types, so mark
     // that we couldn't get the counts.
     PG_TRY();

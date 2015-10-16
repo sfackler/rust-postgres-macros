@@ -10,8 +10,8 @@ repository = "https://github.com/sfackler/rust-postgres-macros"
 build = "build.rs"
 
 [lib]
-
-name = "postgres_macros"
-path = "src/lib.rs"
 plugin = true
 test = false
+
+[dev-dependencies]
+compiletest_rs = "0.0.10"

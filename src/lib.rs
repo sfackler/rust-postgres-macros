@@ -90,7 +90,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         None => return DummyResult::expr(sp),
     };
 
-    if !parser.eat(&Comma).ok().unwrap() {
+    if parser.token != Eof && !parser.eat(&Comma).ok().unwrap() {
         cx.span_err(parser.span, "expected `,`");
         return DummyResult::expr(sp);
     }
@@ -114,6 +114,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 
     let ident = Ident::with_empty_ctxt(token::intern("execute"));
     let args = cx.expr_vec(sp, args);
+    let args = cx.expr_addr_of(sp, args);
     MacEager::expr(cx.expr_method_call(sp, conn, ident, vec![query_expr, args]))
 }
 

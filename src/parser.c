@@ -34,6 +34,7 @@ void parse_query(char *query, struct ParseResult *result) {
     PG_CATCH();
     {
         ErrorData *error_data = CopyErrorData();
+        FlushErrorState();
         result->error_message = malloc(strlen(error_data->message) + 1);
         strcpy(result->error_message, error_data->message);
         result->index = error_data->cursorpos;
@@ -42,6 +43,8 @@ void parse_query(char *query, struct ParseResult *result) {
     PG_END_TRY();
 
     if (result->success != 1) {
+        MemoryContextSwitchTo(TopMemoryContext);
+        MemoryContextDelete(ctx);
         return;
     }
 
@@ -53,6 +56,7 @@ void parse_query(char *query, struct ParseResult *result) {
     }
     PG_CATCH();
     {
+        FlushErrorState();
         result->num_params = -1;
     }
     PG_END_TRY();

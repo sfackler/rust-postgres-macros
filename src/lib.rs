@@ -58,7 +58,7 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
                                                 tts.to_vec());
 
-    let query_expr = cx.expander().fold_expr(parser.parse_expr());
+    let query_expr = cx.expander().fold_expr(parser.parse_expr_panic());
     let query = match parse_str_lit(cx, &*query_expr) {
         Some(query) => query,
         None => return DummyResult::expr(sp)
@@ -77,14 +77,14 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
                                                 tts.to_vec());
 
-    let conn = parser.parse_expr();
+    let conn = parser.parse_expr_panic();
 
     if !parser.eat(&Comma).ok().unwrap() {
         cx.span_err(parser.span, "expected `,`");
         return DummyResult::expr(sp);
     }
 
-    let query_expr = cx.expander().fold_expr(parser.parse_expr());
+    let query_expr = cx.expander().fold_expr(parser.parse_expr_panic());
     let query = match parse_str_lit(cx, &*query_expr) {
         Some(query) => query,
         None => return DummyResult::expr(sp),
@@ -144,7 +144,7 @@ fn parse_args(cx: &mut ExtCtxt, parser: &mut Parser) -> Option<Vec<P<Expr>>> {
     let mut args = Vec::new();
 
     while parser.token != Eof {
-        args.push(parser.parse_expr());
+        args.push(parser.parse_expr_panic());
 
         if !parser.eat(&Comma).ok().unwrap() && parser.token != Eof {
             cx.span_err(parser.span, "expected `,`");

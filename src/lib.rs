@@ -2,9 +2,10 @@
 
 extern crate libc;
 extern crate rustc;
+extern crate rustc_plugin;
 extern crate syntax;
 
-use rustc::plugin::Registry;
+use rustc_plugin::Registry;
 use std::ffi::{CStr, CString};
 use std::mem;
 use std::str;

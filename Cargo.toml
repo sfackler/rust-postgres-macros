@@ -1,8 +1,8 @@
 [package]
 name = "postgres_macros"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
-version = "0.1.9"
-license = "MIT"
+version = "0.1.10"
+license = "MIT/Apache-2.0"
 description = "A set of support macros for rust-postgres"
 repository = "https://github.com/sfackler/rust-postgres-macros"
 

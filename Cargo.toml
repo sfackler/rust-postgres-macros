@@ -13,4 +13,4 @@ plugin = true
 test = false
 
 [dev-dependencies]
-compiletest_rs = "0.0.10"
+compiletest_rs = "0.0.11"

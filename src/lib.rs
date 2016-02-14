@@ -9,7 +9,7 @@ use rustc_plugin::Registry;
 use std::ffi::{CStr, CString};
 use std::mem;
 use std::str;
-use syntax::ast::{TokenTree, ExprLit, LitStr, Expr, Ident};
+use syntax::ast::{TokenTree, ExprKind, LitKind, Expr, Ident};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacEager, DummyResult};
 use syntax::ext::build::AstBuilder;
@@ -125,9 +125,9 @@ fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
 
 fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
     match e.node {
-        ExprLit(ref lit) => {
+        ExprKind::Lit(ref lit) => {
             match lit.node {
-                LitStr(ref s, _) => Some(s.clone()),
+                LitKind::Str(ref s, _) => Some(s.clone()),
                 _ => {
                     cx.span_err(e.span, "expected string literal");
                     None

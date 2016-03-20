@@ -2,6 +2,7 @@ VERSION = 9.4.4
 SOURCE_URL = https://ftp.postgresql.org/pub/source/v$(VERSION)/postgresql-$(VERSION).tar.gz
 
 BUILDDIR ?= $(OUT_DIR)/build
+TMPDIR ?= $(OUT_DIR)/tmp
 POSTGRES_DIR := $(BUILDDIR)/postgresql-$(VERSION)
 CFLAGS ?= -O2 -fPIC -Wall -Wextra
 
@@ -32,8 +33,12 @@ $(POSTGRES_STAMP): $(POSTGRES_DIR)
 	$(MAKE) -C $(POSTGRES_DIR)
 	touch $(POSTGRES_STAMP)
 
-$(POSTGRES_DIR): | $(BUILDDIR)
-	curl $(SOURCE_URL) | tar xzf - -C $(BUILDDIR)
+$(POSTGRES_DIR): | $(TMPDIR) $(BUILDDIR)
+	curl $(SOURCE_URL) | tar xzf - -C $(TMPDIR)
+	mv $(TMPDIR)/* $(BUILDDIR)
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
+
+$(TMPDIR):
+	mkdir -p $(TMPDIR)

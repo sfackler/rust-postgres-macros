@@ -9,7 +9,7 @@ use rustc_plugin::Registry;
 use std::ffi::{CStr, CString};
 use std::mem;
 use std::str;
-use syntax::ast::{TokenTree, ExprKind, LitKind, Expr, Ident};
+use syntax::ast::{ExprKind, LitKind, Expr, Ident};
 use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacEager, DummyResult};
 use syntax::ext::build::AstBuilder;
@@ -19,6 +19,7 @@ use syntax::parse::token::{InternedString, Comma, Eof};
 use syntax::parse;
 use syntax::parse::parser::Parser;
 use syntax::ptr::P;
+use syntax::tokenstream::TokenTree;
 
 mod ffi {
     use libc::{c_char, c_int};

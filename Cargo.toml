@@ -1,7 +1,7 @@
 [package]
 name = "postgres_macros"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
-version = "0.1.11"
+version = "0.1.12"
 license = "MIT/Apache-2.0"
 description = "A set of support macros for rust-postgres"
 repository = "https://github.com/sfackler/rust-postgres-macros"
@@ -13,4 +13,4 @@ plugin = true
 test = false
 
 [dev-dependencies]
-compiletest_rs = "0.0.10"
+compiletest_rs = "0.2"

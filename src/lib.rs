@@ -14,8 +14,9 @@ use syntax::codemap::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacEager, DummyResult};
 use syntax::ext::build::AstBuilder;
 use syntax::fold::Folder;
-use syntax::parse::token;
-use syntax::parse::token::{InternedString, Comma, Eof};
+use syntax::symbol::InternedString;
+use syntax::symbol::Symbol;
+use syntax::parse::token::{Comma, Eof};
 use syntax::parse;
 use syntax::parse::parser::Parser;
 use syntax::ptr::P;
@@ -57,8 +58,7 @@ pub fn registrar(reg: &mut Registry) {
 
 fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
               -> Box<MacResult+'static> {
-    let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
-                                                tts.to_vec());
+    let mut parser = parse::new_parser_from_tts(cx.parse_sess(), tts.to_vec());
 
     let query_expr = cx.expander().fold_expr(parser.parse_expr().unwrap());
     let query = match parse_str_lit(cx, &*query_expr) {
@@ -76,8 +76,7 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
 
 fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
                   -> Box<MacResult+'static> {
-    let mut parser = parse::new_parser_from_tts(cx.parse_sess(), cx.cfg(),
-                                                tts.to_vec());
+    let mut parser = parse::new_parser_from_tts(cx.parse_sess(), tts.to_vec());
 
     let conn = parser.parse_expr().unwrap();
 
@@ -114,7 +113,7 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         Err(err) => parse_error(cx, query_expr.span, err),
     }
 
-    let ident = Ident::with_empty_ctxt(token::intern("execute"));
+    let ident = Ident::with_empty_ctxt(Symbol::intern("execute"));
     let args = cx.expr_vec(sp, args);
     let args = cx.expr_addr_of(sp, args);
     MacEager::expr(cx.expr_method_call(sp, conn, ident, vec![query_expr, args]))
@@ -128,7 +127,7 @@ fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
     match e.node {
         ExprKind::Lit(ref lit) => {
             match lit.node {
-                LitKind::Str(ref s, _) => Some(s.clone()),
+                LitKind::Str(ref s, _) => Some(s.as_str()),
                 _ => {
                     cx.span_err(e.span, "expected string literal");
                     None

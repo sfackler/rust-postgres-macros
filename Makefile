@@ -23,7 +23,7 @@ ARCHIVE := $(OUT_DIR)/libparser.a
 $(ARCHIVE): $(POSTGRES_STAMP) $(PARSER) | $(BUILDDIR)
 	$(AR) -rcs $@ $(PARSER) $(POSTGRES_OBJS)
 
-$(PARSER): src/parser.c src/parser.h | $(BUILDDIR)
+$(PARSER): src/parser.c src/parser.h $(POSTGRES_STAMP) | $(BUILDDIR)
 	$(CC) $(CFLAGS) -I $(POSTGRES_DIR)/src/include -c -o $@ $<
 
 # Postgres's build system tacks this onto CFLAGS

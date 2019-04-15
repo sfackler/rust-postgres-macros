@@ -6,7 +6,6 @@ extern crate rustc_plugin;
 extern crate syntax;
 
 use rustc_plugin::Registry;
-use std::borrow::Cow;
 use std::ffi::{CStr, CString};
 use std::mem;
 use std::str;
@@ -125,11 +124,11 @@ fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
     cx.span_err(sp, &format!("Invalid syntax at position {}: {}", err.index, err.message));
 }
 
-fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<Cow<'static, str>> {
+fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<String> {
     match e.node {
         ExprKind::Lit(ref lit) => {
             match lit.node {
-                LitKind::Str(ref s, _) => Some(s.as_str().get().into()),
+                LitKind::Str(ref s, _) => Some(s.to_string()),
                 _ => {
                     cx.span_err(e.span, "expected string literal");
                     None

@@ -10,11 +10,10 @@ use std::ffi::{CStr, CString};
 use std::mem;
 use std::str;
 use syntax::ast::{ExprKind, LitKind, Expr, Ident};
-use syntax::codemap::Span;
+use syntax::source_map::Span;
 use syntax::ext::base::{ExtCtxt, MacResult, MacEager, DummyResult};
 use syntax::ext::build::AstBuilder;
-use syntax::fold::Folder;
-use syntax::symbol::InternedString;
+use syntax::mut_visit::MutVisitor;
 use syntax::symbol::Symbol;
 use syntax::parse::token::{Comma, Eof};
 use syntax::parse;
@@ -60,7 +59,8 @@ fn expand_sql(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
               -> Box<MacResult+'static> {
     let mut parser = parse::new_parser_from_tts(cx.parse_sess(), tts.to_vec());
 
-    let query_expr = cx.expander().fold_expr(parser.parse_expr().unwrap());
+    let mut query_expr = parser.parse_expr().unwrap();
+    cx.expander().visit_expr(&mut query_expr);
     let query = match parse_str_lit(cx, &*query_expr) {
         Some(query) => query,
         None => return DummyResult::expr(sp)
@@ -85,7 +85,8 @@ fn expand_execute(cx: &mut ExtCtxt, sp: Span, tts: &[TokenTree])
         return DummyResult::expr(sp);
     }
 
-    let query_expr = cx.expander().fold_expr(parser.parse_expr().unwrap());
+    let mut query_expr = parser.parse_expr().unwrap();
+    cx.expander().visit_expr(&mut query_expr);
     let query = match parse_str_lit(cx, &*query_expr) {
         Some(query) => query,
         None => return DummyResult::expr(sp),
@@ -123,11 +124,11 @@ fn parse_error(cx: &mut ExtCtxt, sp: Span, err: ParseError) {
     cx.span_err(sp, &format!("Invalid syntax at position {}: {}", err.index, err.message));
 }
 
-fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<InternedString> {
+fn parse_str_lit(cx: &mut ExtCtxt, e: &Expr) -> Option<String> {
     match e.node {
         ExprKind::Lit(ref lit) => {
             match lit.node {
-                LitKind::Str(ref s, _) => Some(s.as_str()),
+                LitKind::Str(ref s, _) => Some(s.to_string()),
                 _ => {
                     cx.span_err(e.span, "expected string literal");
                     None
